@@ -1,0 +1,53 @@
+<!doctype html>
+<html>
+<body>
+	<h1 id="div_version"></h1>
+	<a id="div_url"></a>
+	<hr />
+	<div id="div_extensions"></div>
+	<hr />
+	<div id="div_extensions_footer"></div>
+</body>
+<script>
+const urlParams = new URLSearchParams(window.location.search);
+const version = urlParams.get('version') ? `v${urlParams.get('version')}` : 'latest'
+const url = "https://help.accusoft.com/PrizmDoc/" +  version + "/HTML/supported-file-formats.html";
+document.getElementById("div_version").innerHTML = `PrizmDoc Version: ${version}`;
+document.getElementById("div_url").innerHTML = document.getElementById("div_url").href = url;
+fetch(url).then(r => r.text()).then(html => 
+{
+	var extensionList = '';
+	var parser = new DOMParser();
+	var doc = parser.parseFromString(html, 'text/html');
+	var tables = doc.getElementsByTagName('table');
+	for (let i = 0; i < tables.length; i++) {
+		var thead = tables[i].querySelector('thead');
+		var headers = thead.querySelector('tr').getElementsByTagName('th');
+		
+		var index = -1;
+		for (let j = 0; j < headers.length; j++){
+			var header = headers[j];
+			if(header.innerHTML === "File Extension"){
+				index = j;
+				break;
+			}
+		}
+		
+		var tbody = tables[i].querySelector('tbody');
+		var rows = tbody.getElementsByTagName('tr');
+		for (let j = 0; j < rows.length; j++){
+			var cols = rows[j].getElementsByTagName('td');
+			var ext = cols[index];
+			extensionList += (ext.innerHTML + ", ")
+		}
+	}
+	const extensionText = extensionList.replaceAll("<code>","").replaceAll("</code>","").replaceAll("*", "");
+	document.getElementById("div_extensions").innerHTML = extensionText;
+	const extArray = extensionText.split(',');
+	document.getElementById("div_extensions_footer").innerHTML = extArray.length + " items"
+}).catch((error) => {
+	document.getElementById("div_extensions").innerHTML = `Failed to fetch prizm version ${version}. Please ensure version and the url are both valid.` 
+});
+	
+</script>
+</html>
